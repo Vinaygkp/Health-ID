@@ -648,9 +648,9 @@ app.post(
       let dynamicReply = "";
       if (lowerQ.includes("hindi") || lowerQ.includes("हिंदी")) {
         dynamicReply =
-          "नमस्ते! मैं MediShield AI हूँ। आप मुझसे किसी भी स्वास्थ्य, बीमारी या दवाई के बारे में पूछ सकते हैं। 🩺";
+          "नमस्ते! मैं Health-ID हूँ। आप मुझसे किसी भी स्वास्थ्य, बीमारी या दवाई के बारे में पूछ सकते हैं। 🩺";
       } else {
-        dynamicReply = `MediShield AI Insights for "${query}":\n\n• **Analysis**: Ensure proper rest, balanced nutrition, and hydration. 🔬\n• **Guidance**: Monitor symptoms closely and consult a certified medical professional.`;
+        dynamicReply = `Health-ID Insights for "${query}":\n\n• **Analysis**: Ensure proper rest, balanced nutrition, and hydration. 🔬\n• **Guidance**: Monitor symptoms closely and consult a certified medical professional.`;
       }
 
       dynamicReply +=
