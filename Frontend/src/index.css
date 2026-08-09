@@ -1,0 +1,208 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@variant dark (&:where(.dark, .dark *));
+
+/* ☀️ LIGHT MODE (Silky Clean Glassmorphism & Soft Gradients) */
+:root {
+  --background: #f1f5f9;
+  --foreground: #0f172a;
+  --card: rgba(255, 255, 255, 0.92);
+  --card-foreground: #0f172a;
+  --muted: #e2e8f0;
+  --muted-foreground: #475569;
+  --border: rgba(16, 185, 129, 0.2);
+  --border-hover: rgba(16, 185, 129, 0.5);
+  --primary: #10b981;
+  --accent: #06b6d4;
+  --radius: 24px;
+  --shadow-md: 0 10px 30px -10px rgba(16, 185, 129, 0.1);
+}
+
+/* 🌙 DARK MODE (Obsidian Cyberpunk & Deep Soft Glows) */
+.dark {
+  --background: #030712;
+  --foreground: #f8fafc;
+  --card: rgba(15, 23, 42, 0.88);
+  --card-foreground: #f8fafc;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --border: rgba(16, 185, 129, 0.22);
+  --border-hover: rgba(6, 182, 212, 0.6);
+  --primary: #10b981;
+  --accent: #06b6d4;
+  --radius: 24px;
+  --shadow-md: 0 20px 50px -15px rgba(0, 0, 0, 0.7);
+}
+
+/* 🧈 BUTTER-SMOOTH GLOBAL SETTINGS */
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 🌌 CYBER BOX GRID BACKGROUND */
+body {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  background-color: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+  margin: 0;
+  background-image: 
+    linear-gradient(to right, rgba(16, 185, 129, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(16, 185, 129, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center top;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* 🌈 MULTI-COLOR NEON GRADIENT TEXT */
+.multicolor-text, .gradient-text {
+  background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 📦 PROFESSIONAL CARDS WITH HARDWARE-ACCELERATED BUTTER HOVER */
+.card {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  will-change: transform, box-shadow, border-color, background-color;
+  transform: translateZ(0);
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+              background-color 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 45px -12px rgba(16, 185, 129, 0.2);
+  background: linear-gradient(135deg, var(--card), rgba(16, 185, 129, 0.04));
+}
+
+/* ⌨️ MODERN INPUT FIELDS WITH GLOWING FOCUS */
+.input-field {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--muted);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  color: var(--foreground);
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+  will-change: transform, border-color, box-shadow, background-color;
+  transform: translateZ(0);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.input-field:focus {
+  border-color: #10b981;
+  background: var(--card);
+  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.2);
+  transform: translateY(-1px);
+}
+
+/* 🚀 PRIMARY BUTTON WITH SILKY MOVEMENT */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
+  will-change: transform, box-shadow, filter;
+  transform: translateZ(0);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              filter 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(16, 185, 129, 0.5);
+  filter: brightness(1.1);
+}
+
+.btn-primary:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+/* 🔘 SECONDARY BUTTON */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: var(--muted);
+  color: var(--foreground);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  will-change: transform, box-shadow, border-color, background-color;
+  transform: translateZ(0);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.btn-secondary:hover {
+  border-color: #10b981;
+  background: var(--card);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+/* 📱 SIDEBAR ACTIVE STATE */
+.sidebar-active {
+  background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+  transform: translateX(6px);
+  will-change: transform, box-shadow, background;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* 🛝 CUSTOM SMOOTH SCROLLBAR */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.3); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(16, 185, 129, 0.6); }
+
+/* ✨ SMOOTH FADE IN ANIMATION */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}

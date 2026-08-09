@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables & secrets
+.env
+**/.env
+
+# Build outputs
+dist/
+**/dist/
+build/
+**/build/
+
+# Figma local files and cache
+.figma/
+
+# Temporary files or test assets
+tmp_*
+*.log
+
+# Editor & OS specific files
+.vscode/
+.DS_Store
+Thumbs.db
