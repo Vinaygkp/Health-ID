@@ -28,8 +28,8 @@ Health-iD is a secure, encrypted, and instantaneous digital health identity plat
 
 ## 📂 Project Structure
 
-Design MediShield AI Application/
-├── .gitignore                         <-- Root-level Gitignore file
+```text
+HEALTH_ID/
 ├── Backend/
 │   ├── dist/
 │   ├── node_modules/
@@ -38,67 +38,74 @@ Design MediShield AI Application/
 │   │   │   └── auth.ts
 │   │   ├── models/
 │   │   │   └── user.ts
-│   │   └── server.ts                  <-- Main Express & Passport Server
+│   │   └── server.ts
 │   ├── .env
 │   ├── package-lock.json
 │   ├── package.json
 │   ├── tmp_upload_test.png
 │   └── tsconfig.json
 │
-└── Frontend/
-    ├── .figma/
-    ├── .vscode/
-    ├── dist/
-    ├── node_modules/
-    ├── src/
-    │   ├── components/
-    │   │   ├── Breadcrumb.tsx
-    │   │   ├── ConfirmModal.tsx
-    │   │   ├── Footer.tsx
-    │   │   ├── Navbar.tsx
-    │   │   ├── PageTransition.tsx
-    │   │   ├── Sidebar.tsx
-    │   │   ├── Skeleton.tsx
-    │   │   ├── Toast.tsx
-    │   │   ├── UserAvatar.tsx
-    │   │   └── WelcomeModal.tsx
-    │   ├── contexts/
-    │   ├── data/
-    │   │   └── hospitalsData.ts
-    │   ├── imports/
-    │   │   └── pasted_text/
-    │   │       └── global-website-reqs.md
-    │   ├── pages/
-    │   │   ├── AIChat.tsx
-    │   │   ├── Contact.tsx
-    │   │   ├── Dashboard.tsx
-    │   │   ├── HealthCard.tsx
-    │   │   ├── Home.tsx
-    │   │   ├── HospitalDetails.tsx
-    │   │   ├── Hospitals.tsx
-    │   │   ├── LegalPage.tsx
-    │   │   ├── LoadingScreen.tsx
-    │   │   ├── Login.tsx
-    │   │   ├── MedicalOverview.tsx
-    │   │   ├── NotFound.tsx
-    │   │   ├── Profile.tsx
-    │   │   ├── PublicHealthCard.tsx
-    │   │   ├── QRPage.tsx
-    │   │   ├── Register.tsx
-    │   │   ├── RegistrationSuccess.tsx
-    │   │   └── Settings.tsx
-    │   ├── App.tsx
-    │   ├── index.css
-    │   ├── main.tsx
-    │   └── vite-env.d.ts
-    ├── .gitattributes
-    ├── .gitignore
-    ├── .mise.toml
-    ├── AGENTS.md
-    ├── CLAUDE.md
-    ├── index.html
-    ├── package-lock.json
-    ├── package.json
-    ├── pnpm-lock.yaml
-    ├── tsconfig.json
-    └── vite.config.ts
+├── Frontend/
+│   ├── .figma/
+│   ├── .vscode/
+│   ├── dist/
+│   ├── node_modules/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Breadcrumb.tsx
+│   │   │   ├── ConfirmModal.tsx
+│   │   │   ├── Footer.tsx
+│   │   │   ├── Navbar.tsx
+│   │   │   ├── PageTransition.tsx
+│   │   │   ├── Sidebar.tsx
+│   │   │   ├── Skeleton.tsx
+│   │   │   ├── Toast.tsx
+│   │   │   ├── UserAvatar.tsx
+│   │   │   └── WelcomeModal.tsx
+│   │   ├── contexts/
+│   │   │   ├── AuthContext.tsx
+│   │   │   ├── LanguageContext.tsx
+│   │   │   └── ThemeContext.tsx
+│   │   ├── data/
+│   │   │   └── hospitalsData.ts
+│   │   ├── imports/
+│   │   │   └── pasted_text/
+│   │   │       └── global-website-reqs.md
+│   │   ├── pages/
+│   │   │   ├── AIChat.tsx
+│   │   │   ├── Contact.tsx
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── HealthCard.tsx
+│   │   │   ├── Home.tsx
+│   │   │   ├── HospitalDetails.tsx
+│   │   │   ├── Hospitals.tsx
+│   │   │   ├── LegalPage.tsx
+│   │   │   ├── LoadingScreen.tsx
+│   │   │   ├── Login.tsx
+│   │   │   ├── MedicalOverview.tsx
+│   │   │   ├── NotFound.tsx
+│   │   │   ├── Profile.tsx
+│   │   │   ├── PublicHealthCard.tsx
+│   │   │   ├── QRPage.tsx
+│   │   │   ├── Register.tsx
+│   │   │   ├── RegistrationSuccess.tsx
+│   │   │   └── Settings.tsx
+│   │   ├── App.tsx
+│   │   ├── index.css
+│   │   └── main.tsx
+│   ├── .env
+│   ├── .gitattributes
+│   ├── .gitignore
+│   ├── .mise.toml
+│   ├── AGENTS.md
+│   ├── CLAUDE.md
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── pnpm-lock.yaml
+│   ├── tsconfig.json
+│   ├── vercel.json
+│   └── vite.config.ts
+│
+├── .gitignore
+└── README.md

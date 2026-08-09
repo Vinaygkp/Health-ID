@@ -578,22 +578,22 @@ app.get("/api/health/public/:healthId", async (req, res) => {
 
 app.post(
   "/api/ai-chat",
-  upload.single("report"), // 🛠️ Parses the attached image/PDF file from frontend FormData
+  upload.single("report"),
   async (req: any, res: any) => {
     try {
       const message = req.body?.message || "Please analyze this medical report or image in detail.";
+      const clientLang = req.body?.lang || "en"; // 🛠️ Respect user's selected language
       const query = message.trim();
-      const uploadedFile = req.file; // 🛠️ Access uploaded file buffer
+      const uploadedFile = req.file;
 
       if (GEMINI_API_KEY && GEMINI_API_KEY.length > 5) {
         try {
           const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-          const prompt =
-            "You are Health-ID AI, an expert and empathetic clinical medical assistant. Analyze the user's query and the attached medical report, prescription, lab test, license, or image in detail. Provide clear clinical insights, bullet points, and emojis. If asked in Hindi or if the report is in Hindi, reply appropriately. User Query: " +
-            query;
+          
+          // 🛠️ Dynamic language instruction based on client selection
+          const prompt = `You are Health-ID AI, an expert and empathetic clinical medical assistant. You must reply strictly in the language code: "${clientLang}" (en for English, hi for Hindi, es for Spanish, fr for French). Analyze the user's query and the attached medical report, prescription, lab test, license, or image in detail. Provide clear clinical insights, bullet points, and emojis. User Query: ${query}`;
 
           let result;
-          // 🛠️ Pass image/PDF file buffer directly to Gemini if uploaded
           if (uploadedFile) {
             const filePart = {
               inlineData: {
@@ -614,15 +614,12 @@ app.post(
         }
       }
 
-      const lowerQ = query.toLowerCase();
-      let dynamicReply = "";
-      if (lowerQ.includes("hindi") || lowerQ.includes("हिंदी")) {
-        dynamicReply = "नमस्ते! मैं Health-ID हूँ। आप मुझसे किसी भी स्वास्थ्य, बीमारी या दवाई के बारे में पूछ सकते हैं। 🩺";
-      } else {
-        dynamicReply = `Health-ID Analysis for "${query}":\n\n• **Analysis**: Ensure proper rest, balanced nutrition, and hydration. 🔬\n• **Guidance**: Monitor symptoms closely and consult a certified medical professional.`;
-      }
-
-      dynamicReply += "\n\n⚠️ **Disclaimer**: For educational purposes only. Always consult a certified doctor.";
+      // Language-aware fallback response
+      let dynamicReply = clientLang === 'hi' 
+        ? `"${query}" के लिए Health-ID विश्लेषण:\n\n• **विश्लेषण**: उचित आराम, संतुलित पोषण और जलयोजन सुनिश्चित करें। 🔬`
+        : `Health-ID Analysis for "${query}":\n\n• **Analysis**: Ensure proper rest, balanced nutrition, and hydration. 🔬`;
+      
+      dynamicReply += clientLang === 'hi' ? "\n\n⚠️ **अस्वीकरण**: केवल शैक्षणिक उद्देश्यों के लिए।" : "\n\n⚠️ **Disclaimer**: For educational purposes only.";
       return res.json({ reply: dynamicReply });
     } catch (err: any) {
       console.error("❌ Chat Processing Error:", err);
