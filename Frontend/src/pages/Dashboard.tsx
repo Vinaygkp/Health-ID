@@ -68,16 +68,23 @@ export default function Dashboard() {
   const [showWelcome, setShowWelcome] = useState(isFirstLogin)
   const [loading, setLoading] = useState(true)
 
-useEffect(() => {
-  const queryParams = new URLSearchParams(window.location.search);
-  const token = queryParams.get('token');
-  if (token) {
-    localStorage.setItem('medishield-token', token);
-    // URL clean karne ke liye
-    window.history.replaceState({}, document.title, '/dashboard');
-    window.location.reload(); // Auth context refresh karne ke liye
-  }
-}, []);
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const token = queryParams.get('token');
+    if (token) {
+      localStorage.setItem('medishield-token', token);
+      window.history.replaceState({}, document.title, '/dashboard');
+      window.location.reload();
+    }
+  }, []);
+
+  // 🛠️ Fixed loading state resolution so dashboard appears immediately
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [user])
 
   const handleCloseWelcome = () => {
     setShowWelcome(false)
