@@ -1,11 +1,14 @@
 import { useState, useRef, useEffect, useId } from 'react'
-import { Send, Bot, User, RefreshCw, Sparkles, ArrowLeft, Activity, HeartPulse, Stethoscope, Pill, Brain, ShieldCheck, Globe } from 'lucide-react'
+import { Send, Bot, User, RefreshCw, Sparkles, ArrowLeft, Activity, HeartPulse, Stethoscope, Pill, Brain, ShieldCheck } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../components/Toast'
 import { useLang, type Lang } from '../contexts/LanguageContext'
+
+
+const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export default function AIChat() {
   const { user } = useAuth()
@@ -59,7 +62,7 @@ export default function AIChat() {
 
     try {
       const token = localStorage.getItem('medishield-token')
-      const res = await fetch('http://localhost:5001/api/ai-chat', {
+      const res = await fetch(`${API_BASE}/ai-chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -84,7 +87,7 @@ export default function AIChat() {
         ...prev, 
         { 
           sender: 'bot', 
-          text: 'MediShield Neural Link network error. Please verify that your Node.js backend server is running on port 5001.', 
+          text: 'MediShield Neural Link network error. Please verify that your backend server is running.', 
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
         }
       ])

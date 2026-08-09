@@ -58,7 +58,7 @@ interface AuthContextType {
   setFirstLoginDone: () => void
 }
 
-const API_BASE = 'http://localhost:5001/api'
+const API_BASE = import.meta.env.VITE_API_URL
 
 const AuthContext = createContext<AuthContextType>({
   user: null,

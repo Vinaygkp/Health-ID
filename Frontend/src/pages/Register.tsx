@@ -9,6 +9,8 @@ import { useToast } from '../components/Toast'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 
+const API_BASE = import.meta.env.VITE_API_URL || ''
+
 const STEPS = [
   { num: 1, label: 'Personal', icon: User },
   { num: 2, label: 'Medical', icon: Stethoscope },
@@ -257,11 +259,12 @@ export default function Register() {
 
   const handleResendOtp = async () => {
     setIsLoading(true)
+    const baseUrl = API_BASE.replace(/\/api$/, '')
     if (phase === 'email-otp') {
       await sendOtp(data.email!)
       showToast('New Email OTP sent successfully!', 'success')
     } else if (phase === 'mobile-otp') {
-      await fetch('http://localhost:5001/api/auth/send-mobile-otp', {
+      await fetch(`${baseUrl}/api/auth/send-mobile-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: data.email, phone: data.phone })
@@ -282,7 +285,7 @@ export default function Register() {
 
     setIsLoading(true)
     try {
-      const response = await fetch('http://localhost:5001/api/auth/verify-otp', {
+      const response = await fetch(`${API_BASE}/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: data.email, otp: finalEmailOtp })
@@ -290,7 +293,7 @@ export default function Register() {
       const resData = await response.json()
 
       if (resData.success) {
-        const mobileRes = await fetch('http://localhost:5001/api/auth/send-mobile-otp', {
+        const mobileRes = await fetch(`${API_BASE}/auth/send-mobile-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: data.email, phone: data.phone })
@@ -324,7 +327,7 @@ export default function Register() {
 
     setIsLoading(true)
     try {
-      const res = await fetch('http://localhost:5001/api/auth/verify-mobile-otp', {
+      const res = await fetch(`${API_BASE}/auth/verify-mobile-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: data.email, otp: finalMobileOtp })
@@ -353,35 +356,35 @@ export default function Register() {
 
   const handleSendAadhaarOtp = () => {
     if (!aadhaarNumber || aadhaarNumber.length !== 12) {
-      showToast('Please enter a valid 12-digit Aadhaar number', 'error')
+      showToast('Please enter a valid 12-digit ID number', 'error')
       return
     }
     setIsAadhaarOtpSent(true)
-    showToast('Aadhaar OTP sent to registered mobile number (Demo OTP: 123456)', 'success')
+    showToast('OTP sent to registered mobile number (Demo OTP: 123456)', 'success')
   }
 
   const handleVerifyAadhaarOtp = () => {
     const finalOtp = aadhaarOtp.join('')
     if (finalOtp.length < 6) {
-      showToast('Please enter complete 6-digit Aadhaar OTP', 'error')
+      showToast('Please enter complete 6-digit OTP', 'error')
       return
     }
 
-    const maskedAadhaar = `XXXX-XXXX-${aadhaarNumber.slice(-4)}`
+    const maskedId = `XXXX-XXXX-${aadhaarNumber.slice(-4)}`
     setData(d => ({
       ...d,
-      aadhaarNumber: maskedAadhaar,
+      aadhaarNumber: maskedId,
       isAadhaarVerified: true
     }))
 
     setIsAadhaarVerified(true)
-    showToast('Aadhaar Verified Successfully! You can now generate your Health ID.', 'success')
+    showToast('Identity Verified Successfully! You can now generate your Health ID.', 'success')
     setStep(8)
   }
 
   const handleFinalSubmit = async () => {
     if (!isAadhaarVerified) {
-      showToast('Aadhaar verification is mandatory to generate Health ID', 'error')
+      showToast('Identity verification is mandatory to generate Health ID', 'error')
       setStep(7)
       return
     }
@@ -392,7 +395,7 @@ export default function Register() {
 
   const next = () => {
     if (step === 7 && !isAadhaarVerified) {
-      showToast('Please complete Aadhaar verification first!', 'error')
+      showToast('Please complete identity verification first!', 'error')
       return
     }
     if (step < 8) setStep(s => s + 1)
@@ -456,7 +459,8 @@ export default function Register() {
 
   const handleGoogleSignup = () => {
     showToast('Redirecting to Google Authentication...', 'info')
-    window.location.href = 'http://localhost:5001/api/auth/google'
+    const baseUrl = API_BASE.replace(/\/api$/, '')
+    window.location.href = `${baseUrl}/api/auth/google`
   }
 
   const availableStates = data.country ? Object.keys(LOCATION_DATA[data.country] || {}) : []
@@ -1106,7 +1110,7 @@ export default function Register() {
                 </div>
               )}
 
-              {/* STEP 7: AADHAAR VERIFICATION */}
+              {/* STEP 7: IDENTITY VERIFICATION */}
               {step === 7 && (
                 <div className="space-y-6 text-center">
                   <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center mx-auto mb-4 border border-indigo-500/20">

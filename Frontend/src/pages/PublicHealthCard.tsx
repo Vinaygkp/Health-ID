@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { 
-  Shield, Phone, AlertCircle, Heart, Activity, 
-  Lock, Globe, Sun, Moon, UserCheck, Calendar, FileText, MapPin, CheckCircle
+  Phone, AlertCircle, Activity, 
+  Lock, Globe, Sun, Moon, UserCheck, FileText
 } from 'lucide-react'
 import Footer from '../components/Footer'
 import { useTheme } from '../contexts/ThemeContext'
 import { useLang } from '../contexts/LanguageContext'
-import { useToast } from '../components/Toast'
+
+const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export default function HealthCardPage() {
   const navigate = useNavigate()
   const { healthId } = useParams()
   const { theme, toggleTheme } = useTheme()
   const { lang, setLang } = useLang()
-  const { showToast } = useToast()
   
   const [publicUser, setPublicUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -24,7 +24,7 @@ export default function HealthCardPage() {
       if (!healthId) return
       try {
         setLoading(true)
-        const response = await fetch(`http://localhost:5001/api/health/public/${encodeURIComponent(healthId)}`)
+        const response = await fetch(`${API_BASE}/health/public/${encodeURIComponent(healthId)}`)
         const data = await response.json()
         if (response.ok && data.success) {
           setPublicUser(data.data || data.user)

@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Shield, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../components/Toast'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+
+
+const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export default function Login() {
   const navigate = useNavigate()
@@ -99,8 +102,10 @@ export default function Login() {
   }
 
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:5001/api/auth/google';
-  };
+    // Extract domain root or use full URL dynamically
+    const baseUrl = API_BASE.replace(/\/api$/, '')
+    window.location.href = `${baseUrl}/api/auth/google`
+  }
 
   return (
     <div

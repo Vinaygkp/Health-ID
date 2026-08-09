@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Menu, Edit3, Camera, Shield, Activity, Pill, Users, FileText, AlertCircle, CheckCircle, Upload, Trash2, Plus, Globe, Sun, Moon } from 'lucide-react'
+import { Menu, Edit3, Camera, Shield, Activity, Pill, Users, FileText, AlertCircle, CheckCircle, Upload, Trash2, Globe, Sun, Moon } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import Footer from '../components/Footer'
 import Breadcrumb from '../components/Breadcrumb'
@@ -9,7 +9,8 @@ import { useTheme } from '../contexts/ThemeContext'
 import { useLang } from '../contexts/LanguageContext'
 import { useToast } from '../components/Toast'
 
-const API_BASE = 'http://localhost:5001/api'
+
+const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export default function Profile() {
   const { user, updateProfile } = useAuth()
