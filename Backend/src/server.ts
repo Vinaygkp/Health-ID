@@ -25,8 +25,8 @@ const MONGO_URI = process.env.MONGO_URI || "";
 const JWT_SECRET = process.env.JWT_SECRET || "";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const GOOGLE_WEBHOOK_URL = process.env.GOOGLE_WEBHOOK_URL || "";
-const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || ``;
-const FRONTEND_URL = process.env.FRONTEND_URL || "";
+const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || `http://localhost:${PORT}/api/auth/google/callback`;
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 // JWT Token Generator Helper Function
 const generateJwtToken = (user: any) => {
@@ -70,7 +70,7 @@ const generateHealthId = async (): Promise<string> => {
   }
 };
 
-// Google Strategy Setup with dynamic callback URL from .env
+// Google Strategy Setup
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'YOUR_GOOGLE_CLIENT_SECRET',
@@ -120,7 +120,7 @@ app.get('/api/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
-// 2. Google Callback Route with dynamic frontend redirect
+// 2. Google Callback Route
 app.get('/api/auth/google/callback',
   passport.authenticate('google', { failureRedirect: `${FRONTEND_URL}/login` }),
   (req: any, res: any) => {
@@ -129,7 +129,7 @@ app.get('/api/auth/google/callback',
   }
 );
 
-// 🔒 Clean Cloudinary Config strictly using .env variables
+// Cloudinary Config
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -166,16 +166,13 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/* ── GOOGLE APPS SCRIPT WEBHOOK EMAIL HELPER ── */
 const sendOtpEmailHelper = async (
   toEmail: string,
   otp: string,
   subject: string,
 ) => {
   if (!GOOGLE_WEBHOOK_URL) {
-    console.warn(
-      "⚠️ GOOGLE_WEBHOOK_URL is missing, running in simulation mode.",
-    );
+    console.warn("⚠️ GOOGLE_WEBHOOK_URL is missing, running in simulation mode.");
     return true;
   }
 
@@ -190,7 +187,6 @@ const sendOtpEmailHelper = async (
   );
 };
 
-// Temporary In-Memory Storage for OTPs
 const otpStorage = new Map<
   string,
   { emailOtp: string; mobileOtp: string; expiresAt: number }
@@ -206,19 +202,14 @@ app.get("/", (_req, res) => {
 });
 
 // --- AUTH & OTP ROUTES ---
-
 app.post("/api/auth/send-otp", async (req, res) => {
   try {
     const { email } = req.body;
     if (!email)
-      return res
-        .status(400)
-        .json({ success: false, message: "Email is required" });
+      return res.status(400).json({ success: false, message: "Email is required" });
 
     const cleanEmail = email.trim().toLowerCase();
-    const generatedEmailOtp = Math.floor(
-      100000 + Math.random() * 900000,
-    ).toString();
+    const generatedEmailOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
     otpStorage.set(cleanEmail, {
       emailOtp: generatedEmailOtp,
@@ -229,7 +220,7 @@ app.post("/api/auth/send-otp", async (req, res) => {
     await sendOtpEmailHelper(
       cleanEmail,
       generatedEmailOtp,
-      "Your MediShield Email Verification OTP",
+      "Your Health-ID Email Verification OTP",
     );
 
     return res.json({
@@ -237,10 +228,7 @@ app.post("/api/auth/send-otp", async (req, res) => {
       message: "OTP sent successfully to your email inbox",
     });
   } catch (err: any) {
-    console.error(
-      "❌ Webhook Email Error:",
-      err?.response?.data || err.message,
-    );
+    console.error("❌ Webhook Email Error:", err?.response?.data || err.message);
     return res.status(500).json({
       success: false,
       message: err.message || "Failed to send email OTP via Webhook",
@@ -248,14 +236,11 @@ app.post("/api/auth/send-otp", async (req, res) => {
   }
 });
 
-// 🔒 ONE EMAIL / ONE PHONE = UNIQUE PERMANENT HEALTH ID
 app.post("/api/auth/verify-otp", async (req, res) => {
   try {
     const { email, phone, otp } = req.body;
     if (!email || !otp)
-      return res
-        .status(400)
-        .json({ success: false, message: "Email and OTP required" });
+      return res.status(400).json({ success: false, message: "Email and OTP required" });
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = phone ? phone.trim() : null;
@@ -266,9 +251,7 @@ app.post("/api/auth/verify-otp", async (req, res) => {
       (record && record.emailOtp === trimmedOtp) || trimmedOtp.length === 6;
 
     if (!isValid) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid or expired Email OTP" });
+      return res.status(400).json({ success: false, message: "Invalid or expired Email OTP" });
     }
 
     otpStorage.delete(cleanEmail);
@@ -314,9 +297,7 @@ app.post("/api/auth/verify-otp", async (req, res) => {
       user: userObj,
     });
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({ success: false, message: err.message || "Verification failed" });
+    return res.status(500).json({ success: false, message: err.message || "Verification failed" });
   }
 });
 
@@ -324,14 +305,10 @@ app.post("/api/auth/send-mobile-otp", async (req, res) => {
   try {
     const { email } = req.body;
     if (!email)
-      return res
-        .status(400)
-        .json({ success: false, message: "Email is required" });
+      return res.status(400).json({ success: false, message: "Email is required" });
 
     const cleanEmail = email.trim().toLowerCase();
-    const generatedMobileOtp = Math.floor(
-      100000 + Math.random() * 900000,
-    ).toString();
+    const generatedMobileOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
     const existing = otpStorage.get(cleanEmail) || {
       emailOtp: "",
@@ -350,10 +327,7 @@ app.post("/api/auth/send-mobile-otp", async (req, res) => {
       demoMobileOtp: generatedMobileOtp,
     });
   } catch (err: any) {
-    return res.status(500).json({
-      success: false,
-      message: err.message || "Failed to send mobile OTP",
-    });
+    return res.status(500).json({ success: false, message: err.message || "Failed to send mobile OTP" });
   }
 });
 
@@ -361,9 +335,7 @@ app.post("/api/auth/verify-mobile-otp", async (req, res) => {
   try {
     const { email, otp } = req.body;
     if (!email || !otp)
-      return res
-        .status(400)
-        .json({ success: false, message: "Email and OTP required" });
+      return res.status(400).json({ success: false, message: "Email and OTP required" });
 
     const cleanEmail = email.trim().toLowerCase();
     const trimmedOtp = otp.trim();
@@ -373,23 +345,18 @@ app.post("/api/auth/verify-mobile-otp", async (req, res) => {
       (record && record.mobileOtp === trimmedOtp) || trimmedOtp.length === 6;
 
     if (!isValid) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid or expired Mobile OTP" });
+      return res.status(400).json({ success: false, message: "Invalid or expired Mobile OTP" });
     }
 
     return res.json({ success: true, message: "Mobile verified successfully" });
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({ success: false, message: err.message || "Verification failed" });
+    return res.status(500).json({ success: false, message: err.message || "Verification failed" });
   }
 });
 
 app.post("/api/auth/register", async (req, res) => {
   try {
-    const { email, password, fullName, phone, dob, gender, ...otherFields } =
-      req.body;
+    const { email, password, fullName, phone, dob, gender, ...otherFields } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required" });
 
     const cleanEmail = email.trim().toLowerCase();
@@ -435,9 +402,7 @@ app.post("/api/auth/register", async (req, res) => {
     delete (userObj as any).passwordHash;
     return res.status(201).json({ token, user: userObj });
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({ message: err.message || "Registration failed" });
+    return res.status(500).json({ message: err.message || "Registration failed" });
   }
 });
 
@@ -461,7 +426,6 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-// Update Profile
 app.put(
   "/api/user/profile",
   authenticateToken,
@@ -483,14 +447,11 @@ app.put(
       delete (userObj as any).passwordHash;
       return res.json({ success: true, user: userObj });
     } catch (err: any) {
-      return res
-        .status(500)
-        .json({ message: err.message || "Failed to update profile" });
+      return res.status(500).json({ message: err.message || "Failed to update profile" });
     }
   },
 );
 
-// 📤 Cloudinary File Upload Route
 app.post(
   "/api/upload",
   authenticateToken,
@@ -498,9 +459,7 @@ app.post(
   async (req: any, res: any) => {
     try {
       if (!req.file) {
-        return res
-          .status(400)
-          .json({ success: false, message: "No file uploaded" });
+        return res.status(400).json({ success: false, message: "No file uploaded" });
       }
 
       if (
@@ -527,7 +486,7 @@ app.post(
       const dataUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
 
       const uploadResult = await cloudinary.uploader.upload(dataUri, {
-        folder: "medishield_uploads",
+        folder: "health_id_uploads",
         resource_type: isPdf ? "raw" : "image",
         public_id: `${Date.now()}-${safeName}`,
         format: isPdf ? "pdf" : undefined,
@@ -570,14 +529,11 @@ app.post(
       });
     } catch (err: any) {
       console.error("❌ Cloudinary Upload Error:", err);
-      return res
-        .status(500)
-        .json({ success: false, message: err.message || "Upload failed" });
+      return res.status(500).json({ success: false, message: err.message || "Upload failed" });
     }
   },
 );
 
-// --- PUBLIC HEALTH CARD ROUTE ---
 app.get("/api/health/public/:healthId", async (req, res) => {
   try {
     const { healthId } = req.params;
@@ -585,9 +541,7 @@ app.get("/api/health/public/:healthId", async (req, res) => {
 
     const user = await User.findOne({ healthId: normalizedId });
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Health profile not found" });
+      return res.status(404).json({ success: false, message: "Health profile not found" });
     }
 
     const publicProfile = {
@@ -620,7 +574,6 @@ app.get("/api/health/public/:healthId", async (req, res) => {
   }
 });
 
-// --- AI CHAT ROUTE ---
 app.post(
   "/api/ai-chat",
   async (req: express.Request, res: express.Response) => {
@@ -649,19 +602,15 @@ app.post(
       const lowerQ = query.toLowerCase();
       let dynamicReply = "";
       if (lowerQ.includes("hindi") || lowerQ.includes("हिंदी")) {
-        dynamicReply =
-          "नमस्ते! मैं Health-ID हूँ। आप मुझसे किसी भी स्वास्थ्य, बीमारी या दवाई के बारे में पूछ सकते हैं। 🩺";
+        dynamicReply = "नमस्ते! मैं Health-ID हूँ। आप मुझसे किसी भी स्वास्थ्य, बीमारी या दवाई के बारे में पूछ सकते हैं। 🩺";
       } else {
         dynamicReply = `Health-ID Insights for "${query}":\n\n• **Analysis**: Ensure proper rest, balanced nutrition, and hydration. 🔬\n• **Guidance**: Monitor symptoms closely and consult a certified medical professional.`;
       }
 
-      dynamicReply +=
-        "\n\n⚠️ **Disclaimer**: For educational purposes only. Always consult a certified doctor.";
+      dynamicReply += "\n\n⚠️ **Disclaimer**: For educational purposes only. Always consult a certified doctor.";
       return res.json({ reply: dynamicReply });
     } catch (err: any) {
-      return res
-        .status(500)
-        .json({ reply: "Server error processing AI chat." });
+      return res.status(500).json({ reply: "Server error processing AI chat." });
     }
   },
 );

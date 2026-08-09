@@ -9,7 +9,8 @@ import { useToast } from '../components/Toast'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 
-const API_BASE = import.meta.env.VITE_API_URL || ''
+// 🌐 Dynamic API Base URL with trailing slash cleanup
+const API_BASE = (import.meta.env.VITE_API_URL || 'https://health-id.onrender.com/api').replace(/\/+$/, '')
 
 const STEPS = [
   { num: 1, label: 'Personal', icon: User },

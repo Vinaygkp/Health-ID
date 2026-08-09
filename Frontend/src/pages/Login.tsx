@@ -6,8 +6,8 @@ import { useToast } from '../components/Toast'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 
-
-const API_BASE = import.meta.env.VITE_API_URL || ''
+// 🌐 Dynamic API Base URL with fallback to your live Render backend
+const API_BASE = import.meta.env.VITE_API_URL || 'https://health-id.onrender.com/api'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -102,7 +102,6 @@ export default function Login() {
   }
 
   const handleGoogleLogin = () => {
-    // Extract domain root or use full URL dynamically
     const baseUrl = API_BASE.replace(/\/api$/, '')
     window.location.href = `${baseUrl}/api/auth/google`
   }
