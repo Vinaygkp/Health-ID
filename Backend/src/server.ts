@@ -202,7 +202,7 @@ mongoose
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
 app.get("/", (_req, res) => {
-  res.send({ status: "🚀 MediShield Backend Running Successfully" });
+  res.send({ status: "🚀 Health-ID Backend Running Successfully" });
 });
 
 // --- AUTH & OTP ROUTES ---
