@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect, useId } from 'react'
-import { Send, Bot, User, RefreshCw, Sparkles, ArrowLeft, Activity, HeartPulse, Stethoscope, Pill, Brain, ShieldCheck } from 'lucide-react'
+import { Send, Bot, User, RefreshCw, Sparkles, ArrowLeft, Activity, HeartPulse, Stethoscope, Pill, Brain, ShieldCheck, Upload, FileText, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../components/Toast'
 import { useLang, type Lang } from '../contexts/LanguageContext'
-
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
@@ -17,8 +16,13 @@ export default function AIChat() {
   const { lang, setLang } = useLang()
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [filePreview, setFilePreview] = useState<string | null>(null)
+  
   const chatContainerRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const inputId = useId()
+  const fileInputId = useId()
 
   const langs: { code: Lang; label: string; flag: string }[] = [
     { code: 'en', label: 'English', flag: '🇺🇸' },
@@ -39,7 +43,7 @@ export default function AIChat() {
   const [chatHistory, setChatHistory] = useState([
     {
       sender: 'bot',
-      text: `Hello ${user?.fullName?.split(' ')[0] || 'there'}! I am Dr. Vinay AI, your advanced clinical assistant powered by Google Gemini. How can I assist with your health and medical queries today?`,
+      text: `Hello ${user?.fullName?.split(' ')[0] || 'there'}! I am Dr. Vinay AI, your advanced clinical assistant powered by Google Gemini. You can chat with me or upload your medical reports (PDF/Images) for instant AI analysis in your preferred language!`,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ])
@@ -51,24 +55,60 @@ export default function AIChat() {
     }
   }, [chatHistory, loading])
 
-  const sendQuery = async (userText: string) => {
-    if (!userText.trim()) return
+  // Handle File Selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        showToast('File size must be less than 10MB', 'error')
+        return
+      }
+      setSelectedFile(file)
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader()
+        reader.onloadend = () => setFilePreview(reader.result as string)
+        reader.readAsDataURL(file)
+      } else {
+        setFilePreview(null)
+      }
+      showToast(`Attached: ${file.name}`, 'info')
+    }
+  }
 
-    setMessage('')
+  const removeFile = () => {
+    setSelectedFile(null)
+    setFilePreview(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const sendQuery = async (userText: string) => {
+    if (!userText.trim() && !selectedFile) return
+
     const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    const displayText = userText + (selectedFile ? ` [Attached Report: ${selectedFile.name}]` : '')
     
-    setChatHistory(prev => [...prev, { sender: 'user', text: userText, time: currentTime }])
+    setChatHistory(prev => [...prev, { sender: 'user', text: displayText, time: currentTime }])
+    setMessage('')
     setLoading(true)
+
+    const currentFile = selectedFile
+    removeFile() // Clear attachment payload preview
 
     try {
       const token = localStorage.getItem('medishield-token')
+      const formData = new FormData()
+      formData.append('message', userText || 'Please analyze this medical report and explain findings in detail.')
+      formData.append('lang', lang)
+      if (currentFile) {
+        formData.append('report', currentFile)
+      }
+
       const res = await fetch(`${API_BASE}/ai-chat`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           Authorization: token ? `Bearer ${token}` : '',
         },
-        body: JSON.stringify({ message: userText, lang })
+        body: formData
       })
 
       const data = await res.json()
@@ -87,7 +127,7 @@ export default function AIChat() {
         ...prev, 
         { 
           sender: 'bot', 
-          text: 'MediShield Neural Link network error. Please verify that your backend server is running.', 
+          text: 'MediShield Neural Link network error or report analysis failed. Please verify backend server status.', 
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
         }
       ])
@@ -106,7 +146,7 @@ export default function AIChat() {
     setChatHistory([
       { 
         sender: 'bot', 
-        text: `Chat session reset. Ask Dr. Vinay AI any medical query.`, 
+        text: `Chat session reset. Ask Dr. Vinay AI any medical query or upload a report.`, 
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
       }
     ])
@@ -157,7 +197,7 @@ export default function AIChat() {
                     Dr. Vinay AI Assistant <Sparkles size={16} className="text-amber-400" />
                   </h1>
                   <p className="text-[11px] text-slate-400 flex items-center gap-1.5 font-semibold">
-                    <Activity size={12} className="text-emerald-400" /> Google Gemini Clinical Engine
+                    <Activity size={12} className="text-emerald-400" /> Google Gemini Clinical & Report Analyzer
                   </p>
                 </div>
               </div>
@@ -195,11 +235,11 @@ export default function AIChat() {
               <div className="flex items-center gap-2.5">
                 <ShieldCheck size={18} className="text-indigo-500 shrink-0" />
                 <p className="text-xs text-foreground font-medium">
-                  <strong className="text-indigo-500 font-bold">HIPAA Compliant Clinical Assistant:</strong> Guided by expert medical frameworks.
+                  <strong className="text-indigo-500 font-bold">HIPAA Compliant Assistant:</strong> Upload reports for instant multi-language analysis.
                 </p>
               </div>
               <span className="text-[10px] font-mono uppercase font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 shrink-0 hidden sm:inline-block">
-                GEMINI 1.5 ONLINE
+                GEMINI 1.5 REPORT ENGINE
               </span>
             </div>
 
@@ -269,32 +309,79 @@ export default function AIChat() {
                     <span className="w-2.5 h-2.5 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-2.5 h-2.5 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                     <span className="w-2.5 h-2.5 bg-pink-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                    <span className="text-xs text-slate-400 font-mono ml-2 font-medium">Dr. Vinay AI is analyzing...</span>
+                    <span className="text-xs text-slate-400 font-mono ml-2 font-medium">Dr. Vinay AI is analyzing reports/query...</span>
                   </div>
                 </div>
               )}
             </div>
 
+            {/* Selected File Attachment Preview Bar */}
+            {selectedFile && (
+              <div className="px-4 py-2 bg-indigo-500/10 border-t border-slate-500/20 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2.5 truncate">
+                  {filePreview ? (
+                    <img src={filePreview} alt="preview" className="w-8 h-8 rounded-lg object-cover border border-indigo-500/30" />
+                  ) : (
+                    <FileText size={18} className="text-indigo-500 shrink-0" />
+                  )}
+                  <div className="truncate">
+                    <p className="text-xs font-bold text-foreground truncate">{selectedFile.name}</p>
+                    <p className="text-[10px] text-slate-400">Ready for Gemini clinical breakdown ({lang.toUpperCase()})</p>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={removeFile}
+                  className="p-1.5 hover:bg-red-500/10 hover:text-red-500 rounded-lg text-slate-400 transition-colors cursor-pointer"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+
             {/* Input Form Bar */}
             <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-500/20 shrink-0 bg-card">
-              <div className="relative flex items-center max-w-4xl mx-auto">
-                <label htmlFor={inputId} className="sr-only">Describe your symptoms</label>
-                <input
-                  id={inputId}
-                  type="text"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Describe your symptoms, drugs, or health questions..."
-                  className="input-field w-full py-4 pl-5 pr-14 text-xs sm:text-sm bg-slate-500/5 border-slate-500/20 focus:border-indigo-500 text-foreground placeholder-slate-400 rounded-2xl shadow-inner"
-                  disabled={loading}
+              <div className="relative flex items-center max-w-4xl mx-auto gap-2">
+                
+                {/* Hidden File Input */}
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  accept="image/*,.pdf" 
+                  className="hidden" 
+                  id={fileInputId} 
                 />
-                <button
-                  type="submit"
-                  disabled={!message.trim() || loading}
-                  className="absolute right-2.5 w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-fuchsia-600 text-white hover:opacity-90 disabled:opacity-30 transition-all shadow-md cursor-pointer"
+                
+                {/* Upload Report Button */}
+                <label 
+                  htmlFor={fileInputId}
+                  className="btn-secondary p-3.5 rounded-2xl flex items-center justify-center shrink-0 cursor-pointer hover:border-indigo-500 transition-all text-indigo-500"
+                  title="Upload Medical Report (Image / PDF)"
                 >
-                  <Send size={16} />
-                </button>
+                  <Upload size={18} />
+                </label>
+
+                <div className="relative flex-1">
+                  <label htmlFor={inputId} className="sr-only">Describe your symptoms or ask about report</label>
+                  <input
+                    id={inputId}
+                    type="text"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder={selectedFile ? "Add a note about this report or press send..." : "Ask symptoms, meds, or upload report for analysis..."}
+                    className="input-field w-full py-4 pl-5 pr-14 text-xs sm:text-sm bg-slate-500/5 border-slate-500/20 focus:border-indigo-500 text-foreground placeholder-slate-400 rounded-2xl shadow-inner"
+                    disabled={loading}
+                  />
+                  <button
+                    type="submit"
+                    disabled={(!message.trim() && !selectedFile) || loading}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-fuchsia-600 text-white hover:opacity-90 disabled:opacity-30 transition-all shadow-md cursor-pointer"
+                  >
+                    <Send size={16} />
+                  </button>
+                </div>
+
               </div>
             </form>
 
