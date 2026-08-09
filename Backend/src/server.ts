@@ -578,10 +578,11 @@ app.get("/api/health/public/:healthId", async (req, res) => {
 
 app.post(
   "/api/ai-chat",
-  async (req: express.Request, res: express.Response) => {
+  upload.single("report"), // 🛠️ FIX: Added multer middleware to parse FormData (multipart/form-data)
+  async (req: any, res: any) => {
     try {
-      const { message } = req.body;
-      if (!message || !message.trim()) {
+      const message = req.body?.message;
+      if (!message || typeof message !== 'string' || !message.trim()) {
         return res.status(400).json({ reply: "Please provide a valid query." });
       }
 
@@ -612,6 +613,7 @@ app.post(
       dynamicReply += "\n\n⚠️ **Disclaimer**: For educational purposes only. Always consult a certified doctor.";
       return res.json({ reply: dynamicReply });
     } catch (err: any) {
+      console.error("❌ Chat Processing Error:", err);
       return res.status(500).json({ reply: "Server error processing AI chat." });
     }
   },
