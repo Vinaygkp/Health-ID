@@ -9,8 +9,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { useLang } from '../contexts/LanguageContext'
 import { useToast } from '../components/Toast'
 
-
-const API_BASE = import.meta.env.VITE_API_URL || ''
+const API_BASE = (import.meta.env.VITE_API_URL || 'https://health-id.onrender.com/api').replace(/\/+$/, '')
 
 export default function Profile() {
   const { user, updateProfile } = useAuth()
@@ -245,6 +244,15 @@ export default function Profile() {
       <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{label}</span>
       <span className="text-sm font-bold text-right max-w-[60%] truncate text-slate-900 dark:text-white">{value || '—'}</span>
     </div>
+  )
+
+  // Filter out empty/blank contacts
+  const validEmergencyContacts = (editing ? draft.emergencyContacts : (user?.emergencyContacts ?? [])).filter(
+    (c: any) => c && (c.name?.trim() || c.phone?.trim())
+  )
+
+  const validMedicines = (editing ? draft.medicines : (user?.medicines ?? [])).filter(
+    (m: any) => m && (m.name?.trim())
   )
 
   return (
@@ -501,14 +509,14 @@ export default function Profile() {
                 </div>
               )}
 
-              {(editing ? draft.medicines : (user?.medicines ?? [])).length === 0 ? (
+              {validMedicines.length === 0 ? (
                 <div className="text-center py-8 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40">
                   <Pill size={24} className="mx-auto mb-2 text-indigo-500 opacity-40 animate-bounce" />
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{lang === 'hi' ? 'कोई सक्रिय दवा दर्ज नहीं है' : 'No active medicines recorded'}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {(editing ? draft.medicines : (user?.medicines ?? [])).map((med: any, i: number) => (
+                  {validMedicines.map((med: any, i: number) => (
                     <div key={i} className="p-3.5 rounded-2xl flex items-center justify-between shadow-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 shadow-inner">
                       <div>
                         <p className="font-bold text-sm text-slate-900 dark:text-white">{med.name}</p>
@@ -573,14 +581,14 @@ export default function Profile() {
                 </div>
               )}
 
-              {(editing ? draft.emergencyContacts : (user?.emergencyContacts ?? [])).length === 0 ? (
+              {validEmergencyContacts.length === 0 ? (
                 <div className="text-center py-8 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40">
                   <Users size={24} className="mx-auto mb-2 text-amber-500 opacity-40" />
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{lang === 'hi' ? 'कोई आपातकालीन संपर्क सहेजा नहीं गया है' : 'No emergency contacts saved'}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {(editing ? draft.emergencyContacts : (user?.emergencyContacts ?? [])).map((c: any, i: number) => (
+                  {validEmergencyContacts.map((c: any, i: number) => (
                     <div key={i} className="p-3.5 rounded-2xl flex items-center justify-between shadow-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 shadow-inner">
                       <div className="flex items-center gap-3.5">
                         <div className="w-9 h-9 rounded-2xl flex items-center justify-center text-white text-xs font-black shadow-md shrink-0" style={{ background: i === 0 ? '#ef4444' : '#10b981' }}>
