@@ -7,7 +7,8 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../components/Toast'
 import { useLang, type Lang } from '../contexts/LanguageContext'
 
-const API_BASE = import.meta.env.VITE_API_URL || ''
+// 🌐 Dynamic API Base URL with trailing slash cleanup
+const API_BASE = (import.meta.env.VITE_API_URL || 'https://health-id.onrender.com/api').replace(/\/+$/, '')
 
 export default function AIChat() {
   const { user } = useAuth()
@@ -92,7 +93,7 @@ export default function AIChat() {
     setLoading(true)
 
     const currentFile = selectedFile
-    removeFile() // Clear attachment payload preview
+    removeFile()
 
     try {
       const token = localStorage.getItem('medishield-token')
@@ -163,14 +164,11 @@ export default function AIChat() {
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-indigo-500 selection:text-white flex flex-col overflow-x-hidden">
-      {/* Top Navbar */}
       <Navbar />
 
-      {/* Main Container */}
       <main className="flex-1 pt-24 pb-8 px-4 lg:px-8 flex flex-col items-center justify-center max-w-5xl w-full mx-auto h-[calc(100vh-60px)]">
         <div className="w-full flex-1 flex flex-col h-full overflow-hidden">
           
-          {/* Header Bar */}
           <div className="flex items-center justify-between mb-4 shrink-0 px-1 gap-4">
             <div className="flex items-center gap-3">
               <button 
@@ -203,7 +201,6 @@ export default function AIChat() {
               </div>
             </div>
 
-            {/* Language Selector & Reset Chat */}
             <div className="flex items-center gap-2">
               <div className="flex bg-slate-500/10 border border-slate-500/20 rounded-xl p-1">
                 {langs.map(l => (
@@ -227,10 +224,8 @@ export default function AIChat() {
             </div>
           </div>
 
-          {/* Chatbot Card Box */}
           <div className="card flex-1 flex flex-col overflow-hidden border-indigo-500/30 border-t-4 shadow-2xl rounded-3xl bg-card backdrop-blur-2xl relative">
             
-            {/* Disclaimer Banner */}
             <div className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-transparent border-b border-slate-500/20 px-5 py-3 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
                 <ShieldCheck size={18} className="text-indigo-500 shrink-0" />
@@ -243,12 +238,10 @@ export default function AIChat() {
               </span>
             </div>
 
-            {/* Internal Scrollable Chat Area */}
             <div 
               ref={chatContainerRef}
               className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-slate-500/5"
             >
-              {/* Quick Suggestion Chips */}
               {chatHistory.length <= 2 && (
                 <div className="mb-2">
                   <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mb-3">Suggested Inquiries:</p>
@@ -272,11 +265,9 @@ export default function AIChat() {
                 </div>
               )}
 
-              {/* Chat Message List */}
               {chatHistory.map((msg, index) => (
                 <div key={index} className={`flex items-end gap-3.5 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                   
-                  {/* Avatar */}
                   <div className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 shadow-md ${
                     msg.sender === 'user' 
                       ? 'bg-gradient-to-tr from-blue-600 via-indigo-600 to-fuchsia-600 text-white' 
@@ -285,7 +276,6 @@ export default function AIChat() {
                     {msg.sender === 'user' ? <User size={16} /> : <Bot size={18} />}
                   </div>
 
-                  {/* Bubble */}
                   <div className={`max-w-[85%] sm:max-w-[75%] flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
                     <div className={`px-4.5 py-3.5 text-xs sm:text-sm leading-relaxed shadow-lg backdrop-blur-md ${
                       msg.sender === 'user' 
@@ -299,7 +289,6 @@ export default function AIChat() {
                 </div>
               ))}
 
-              {/* Loading Dots */}
               {loading && (
                 <div className="flex items-end gap-3.5">
                   <div className="w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 bg-card border border-slate-500/20 text-indigo-500">
@@ -315,7 +304,6 @@ export default function AIChat() {
               )}
             </div>
 
-            {/* Selected File Attachment Preview Bar */}
             {selectedFile && (
               <div className="px-4 py-2 bg-indigo-500/10 border-t border-slate-500/20 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2.5 truncate">
@@ -339,11 +327,9 @@ export default function AIChat() {
               </div>
             )}
 
-            {/* Input Form Bar */}
             <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-500/20 shrink-0 bg-card">
               <div className="relative flex items-center max-w-4xl mx-auto gap-2">
                 
-                {/* Hidden File Input */}
                 <input 
                   type="file" 
                   ref={fileInputRef} 
@@ -353,7 +339,6 @@ export default function AIChat() {
                   id={fileInputId} 
                 />
                 
-                {/* Upload Report Button */}
                 <label 
                   htmlFor={fileInputId}
                   className="btn-secondary p-3.5 rounded-2xl flex items-center justify-center shrink-0 cursor-pointer hover:border-indigo-500 transition-all text-indigo-500"
@@ -389,7 +374,6 @@ export default function AIChat() {
         </div>
       </main>
 
-      {/* Main Footer */}
       <Footer />
     </div>
   )
