@@ -53,7 +53,7 @@ const COMPLETION_SECTIONS = [
   { key: 'medical', labelEn: 'Medical Info', labelHi: 'चिकित्सा जानकारी', check: (u: NonNullable<ReturnType<typeof useAuth>['user']>) => !!(u.bloodGroup && u.height && u.weight) },
   { key: 'allergies', labelEn: 'Allergies', labelHi: 'एलर्जी', check: (u: NonNullable<ReturnType<typeof useAuth>['user']>) => !!(u.foodAllergies?.length || u.medicineAllergies?.length) },
   { key: 'medicines', labelEn: 'Medicines', labelHi: 'दवाइयां', check: (u: NonNullable<ReturnType<typeof useAuth>['user']>) => !!(u.medicines?.length) },
-  { key: 'emergency', labelEn: 'Emergency Contacts', labelHi: 'आपातकालीन संपर्क', check: (u: NonNullable<ReturnType<typeof useAuth>['user']>) => !!(u.emergencyContacts?.length) },
+  { key: 'emergency', labelEn: 'Emergency Contacts', labelHi: 'आपातकालीन संपर्क', check: (u: NonNullable<ReturnType<typeof useAuth>['user']>) => !!(u.emergencyContacts?.filter((c: any) => c && c.name?.trim() && c.phone?.trim()).length) },
   { key: 'documents', labelEn: 'Medical Documents', labelHi: 'चिकित्सा दस्तावेज़', check: (u: NonNullable<ReturnType<typeof useAuth>['user']>) => !!(u.documents?.length) },
 ]
 
@@ -78,7 +78,6 @@ export default function Dashboard() {
     }
   }, []);
 
-  // 🛠️ Fixed loading state resolution so dashboard appears immediately
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false)
@@ -96,10 +95,13 @@ export default function Dashboard() {
 
   const qrValue = user ? `${window.location.origin}/health/${user.healthId}` : `${window.location.origin}/demo`
 
+  // Valid emergency contacts filter
+  const validContacts = (user?.emergencyContacts ?? []).filter((c: any) => c && c.name?.trim() && c.phone?.trim())
+
   const recentActivity = [
     { icon: CheckCircle, textEn: 'Health ID authenticated successfully', textHi: 'हेल्थ आईडी सफलतापूर्वक प्रमाणित हुई', timeEn: '2 hours ago', timeHi: '2 घंटे पहले', color: '#10b981' },
     { icon: FileText, textEn: `${user?.documents?.length ?? 0} medical reports synced`, textHi: `${user?.documents?.length ?? 0} चिकित्सा रिपोर्ट सिंक की गईं`, timeEn: 'Today', timeHi: 'आज', color: '#6366f1' },
-    { icon: Users, textEn: `${user?.emergencyContacts?.length ?? 0} emergency circles updated`, textHi: `${user?.emergencyContacts?.length ?? 0} आपातकालीन सर्कल अपडेट किए गए`, timeEn: 'Today', timeHi: 'आज', color: '#f59e0b' },
+    { icon: Users, textEn: `${validContacts.length} emergency circles updated`, textHi: `${validContacts.length} आपातकालीन सर्कल अपडेट किए गए`, timeEn: 'Today', timeHi: 'आज', color: '#f59e0b' },
     { icon: Pill, textEn: 'Smart dosage reminders active', textHi: 'स्मार्ट खुराक अनुस्मारक सक्रिय हैं', timeEn: 'Yesterday', timeHi: 'कल', color: '#8b5cf6' },
     { icon: Shield, textEn: 'End-to-end encrypted via AES-256', textHi: 'AES-256 द्वारा एंड-टू-एंड एन्क्रिप्टेड', timeEn: '2 days ago', timeHi: '2 दिन पहले', color: '#06b6d4' },
   ]
@@ -242,7 +244,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
               <StatCard icon={Heart} label={lang === 'hi' ? 'स्वास्थ्य स्कोर' : 'Health Score'} value="87/100" sub={lang === 'hi' ? 'इष्टतम जीवन शक्ति' : 'Optimal Vitality'} color="#ef4444" onClick={() => navigate('/medical-overview?tab=medical')} />
               <StatCard icon={Pill} label={lang === 'hi' ? 'सक्रिय दवाइयां' : 'Active Medicines'} value={`${user?.medicines?.length ?? 0}`} sub={lang === 'hi' ? 'अनुस्मारक सेट हैं' : 'Reminders set'} color="#8b5cf6" onClick={() => navigate('/medical-overview?tab=medicines')} />
-              <StatCard icon={Users} label={lang === 'hi' ? 'आपातकालीन संपर्क' : 'Emergency Contacts'} value={`${user?.emergencyContacts?.length ?? 0}`} sub={lang === 'hi' ? 'तत्काल प्रेषण' : 'Instant dispatch'} color="#f59e0b" onClick={() => navigate('/medical-overview?tab=emergency')} />
+              <StatCard icon={Users} label={lang === 'hi' ? 'आपातकालीन संपर्क' : 'Emergency Contacts'} value={`${validContacts.length}`} sub={lang === 'hi' ? 'तत्काल प्रेषण' : 'Instant dispatch'} color="#f59e0b" onClick={() => navigate('/medical-overview?tab=emergency')} />
               <StatCard icon={FileText} label={lang === 'hi' ? 'चिकित्सा रिकॉर्ड' : 'Medical Records'} value={`${user?.documents?.length ?? 0}`} sub={lang === 'hi' ? 'क्लाउड में सुरक्षित' : 'Secured in cloud'} color="#06b6d4" onClick={() => navigate('/medical-overview?tab=documents')} />
             </div>
 
@@ -466,7 +468,7 @@ export default function Dashboard() {
                     <p className="font-black text-sm text-foreground font-jakarta">{lang === 'hi' ? 'आपातकालीन संपर्क' : 'Emergency Contacts'}</p>
                     <button type="button" onClick={() => navigate('/medical-overview?tab=emergency')} className="text-xs font-extrabold hover:underline text-indigo-400 cursor-pointer">{lang === 'hi' ? 'देखें →' : 'View →'}</button>
                   </div>
-                  {(user?.emergencyContacts ?? []).length === 0 ? (
+                  {validContacts.length === 0 ? (
                     <div className="text-center py-6 rounded-2xl border border-dashed border-slate-500/30 bg-slate-500/5">
                       <Users size={24} className="mx-auto mb-2 opacity-40 text-amber-500" />
                       <p className="text-xs font-semibold text-slate-400">{lang === 'hi' ? 'कोई आपातकालीन संपर्क सहेजा नहीं गया है' : 'No emergency contacts saved'}</p>
@@ -474,11 +476,11 @@ export default function Dashboard() {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {(user?.emergencyContacts ?? []).map((c: any, i: number) => (
+                      {validContacts.map((c: any, i: number) => (
                         <div key={i} className="flex items-center gap-3.5 p-3.5 rounded-2xl cursor-pointer hover:bg-slate-500/10 bg-slate-500/5 border border-slate-500/10 transition-colors" onClick={() => navigate('/medical-overview?tab=emergency')}>
                           <div className="w-9 h-9 rounded-2xl flex items-center justify-center text-white text-xs font-extrabold shadow-md shrink-0"
                             style={{ background: i === 0 ? '#ef4444' : 'var(--primary)' }}>
-                            {c.priority}
+                            {c.priority || i + 1}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold truncate text-foreground">{c.name}</p>

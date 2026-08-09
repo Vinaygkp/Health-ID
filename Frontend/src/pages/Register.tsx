@@ -183,7 +183,6 @@ export default function Register() {
 
   const fileRef = useRef<HTMLInputElement>(null)
   const docFileRef = useRef<HTMLInputElement>(null)
-
   const [data, setData] = useState<Partial<UserProfile & { password?: string }>>({
     profilePhoto: '',
     fullName: '', dob: '', gender: '', phone: '', email: '', address: '',
@@ -192,7 +191,7 @@ export default function Register() {
     diseases: [], medicalConditions: '', surgeries: '', disabilities: '', familyHistory: '', insurance: '',
     foodAllergies: [], medicineAllergies: [], dustAllergy: false, otherAllergies: '', allergySeverity: 'Mild',
     medicines: [],
-    emergencyContacts: [{ name: '', relation: '', phone: '', whatsapp: '', email: '', priority: 1 }],
+    emergencyContacts: [], // 🛠️ FIX: Default empty array rakhein taaki blank card na bane
     documents: [],
   })
 

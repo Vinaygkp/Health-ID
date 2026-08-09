@@ -209,6 +209,16 @@ app.post("/api/auth/send-otp", async (req, res) => {
       return res.status(400).json({ success: false, message: "Email is required" });
 
     const cleanEmail = email.trim().toLowerCase();
+
+    // 🛑 Check if user already exists with this email
+    const existingUser = await User.findOne({ email: cleanEmail });
+    if (existingUser) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "An account with this email already exists. Please login instead." 
+      });
+    }
+
     const generatedEmailOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
     otpStorage.set(cleanEmail, {
@@ -256,12 +266,7 @@ app.post("/api/auth/verify-otp", async (req, res) => {
 
     otpStorage.delete(cleanEmail);
 
-    let query: any = { email: cleanEmail };
-    if (cleanPhone) {
-      query = { $or: [{ email: cleanEmail }, { phone: cleanPhone }] };
-    }
-
-    let user = await User.findOne(query);
+    let user = await User.findOne({ email: cleanEmail });
 
     if (!user) {
       const healthId = await generateHealthId();
@@ -357,52 +362,49 @@ app.post("/api/auth/verify-mobile-otp", async (req, res) => {
 app.post("/api/auth/register", async (req, res) => {
   try {
     const { email, password, fullName, phone, dob, gender, ...otherFields } = req.body;
-    if (!email) return res.status(400).json({ message: "Email is required" });
+    if (!email) return res.status(400).json({ success: false, message: "Email is required" });
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = phone ? phone.trim() : null;
 
-    let query: any = { email: cleanEmail };
+    // 🛑 Strict Duplicate Check for Email OR Phone Number
+    const queryConditions: any[] = [{ email: cleanEmail }];
     if (cleanPhone) {
-      query = { $or: [{ email: cleanEmail }, { phone: cleanPhone }] };
+      queryConditions.push({ phone: cleanPhone });
     }
 
-    let user = await User.findOne(query);
+    const existingUser = await User.findOne({ $or: queryConditions });
+    if (existingUser) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "An account with this email or phone number is already registered!" 
+      });
+    }
+
+    const healthId = await generateHealthId();
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password || "Default@123", salt);
 
-    if (user) {
-      user.fullName = fullName || user.fullName;
-      user.phone = cleanPhone || user.phone;
-      user.dob = dob || user.dob;
-      user.gender = gender || user.gender;
-      user.passwordHash = passwordHash;
-      user.isVerified = true;
-      Object.assign(user, otherFields);
-      await user.save();
-    } else {
-      const healthId = await generateHealthId();
-      user = new User({
-        fullName: fullName || "User",
-        email: cleanEmail,
-        phone: cleanPhone || "",
-        dob,
-        gender,
-        passwordHash,
-        healthId,
-        registrationDate: new Date().toISOString().split("T")[0],
-        isVerified: true,
-        ...otherFields,
-      });
-      await user.save();
-    }
+    const user = new User({
+      fullName: fullName || "User",
+      email: cleanEmail,
+      phone: cleanPhone || "",
+      dob,
+      gender,
+      passwordHash,
+      healthId,
+      registrationDate: new Date().toISOString().split("T")[0],
+      isVerified: true,
+      ...otherFields,
+    });
+    await user.save();
 
     const token = generateJwtToken(user);
     const userObj = user.toObject();
     delete (userObj as any).passwordHash;
-    return res.status(201).json({ token, user: userObj });
+    return res.status(201).json({ success: true, token, user: userObj });
   } catch (err: any) {
-    return res.status(500).json({ message: err.message || "Registration failed" });
+    return res.status(500).json({ success: false, message: err.message || "Registration failed" });
   }
 });
 
