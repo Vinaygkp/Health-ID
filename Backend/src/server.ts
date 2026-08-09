@@ -578,22 +578,34 @@ app.get("/api/health/public/:healthId", async (req, res) => {
 
 app.post(
   "/api/ai-chat",
-  upload.single("report"), // 🛠️ FIX: Added multer middleware to parse FormData (multipart/form-data)
+  upload.single("report"), // 🛠️ Parses the attached image/PDF file from frontend FormData
   async (req: any, res: any) => {
     try {
-      const message = req.body?.message;
-      if (!message || typeof message !== 'string' || !message.trim()) {
-        return res.status(400).json({ reply: "Please provide a valid query." });
-      }
-
+      const message = req.body?.message || "Please analyze this medical report or image in detail.";
       const query = message.trim();
+      const uploadedFile = req.file; // 🛠️ Access uploaded file buffer
+
       if (GEMINI_API_KEY && GEMINI_API_KEY.length > 5) {
         try {
           const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
           const prompt =
-            "You are Health-ID AI, an empathetic health assistant. Answer queries clearly with bullet points and emojis. If asked in Hindi, reply in Hindi. Query: " +
+            "You are Health-ID AI, an expert and empathetic clinical medical assistant. Analyze the user's query and the attached medical report, prescription, lab test, license, or image in detail. Provide clear clinical insights, bullet points, and emojis. If asked in Hindi or if the report is in Hindi, reply appropriately. User Query: " +
             query;
-          const result = await model.generateContent(prompt);
+
+          let result;
+          // 🛠️ Pass image/PDF file buffer directly to Gemini if uploaded
+          if (uploadedFile) {
+            const filePart = {
+              inlineData: {
+                data: uploadedFile.buffer.toString("base64"),
+                mimeType: uploadedFile.mimetype,
+              },
+            };
+            result = await model.generateContent([prompt, filePart]);
+          } else {
+            result = await model.generateContent(prompt);
+          }
+
           const response = await result.response;
           const text = response.text();
           if (text) return res.json({ reply: text });
@@ -607,7 +619,7 @@ app.post(
       if (lowerQ.includes("hindi") || lowerQ.includes("हिंदी")) {
         dynamicReply = "नमस्ते! मैं Health-ID हूँ। आप मुझसे किसी भी स्वास्थ्य, बीमारी या दवाई के बारे में पूछ सकते हैं। 🩺";
       } else {
-        dynamicReply = `Health-ID Insights for "${query}":\n\n• **Analysis**: Ensure proper rest, balanced nutrition, and hydration. 🔬\n• **Guidance**: Monitor symptoms closely and consult a certified medical professional.`;
+        dynamicReply = `Health-ID Analysis for "${query}":\n\n• **Analysis**: Ensure proper rest, balanced nutrition, and hydration. 🔬\n• **Guidance**: Monitor symptoms closely and consult a certified medical professional.`;
       }
 
       dynamicReply += "\n\n⚠️ **Disclaimer**: For educational purposes only. Always consult a certified doctor.";
