@@ -25,6 +25,8 @@ const MONGO_URI = process.env.MONGO_URI || "";
 const JWT_SECRET = process.env.JWT_SECRET || "";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const GOOGLE_WEBHOOK_URL = process.env.GOOGLE_WEBHOOK_URL || "";
+const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || ``;
+const FRONTEND_URL = process.env.FRONTEND_URL || "";
 
 // JWT Token Generator Helper Function
 const generateJwtToken = (user: any) => {
@@ -68,11 +70,11 @@ const generateHealthId = async (): Promise<string> => {
   }
 };
 
-// Google Strategy Setup with explicit types
+// Google Strategy Setup with dynamic callback URL from .env
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'YOUR_GOOGLE_CLIENT_SECRET',
-    callbackURL: 'http://localhost:5001/api/auth/google/callback'
+    callbackURL: GOOGLE_CALLBACK_URL
   },
   async (_accessToken: string, _refreshToken: string, profile: any, done: (error: any, user?: any) => void) => {
     try {
@@ -118,12 +120,12 @@ app.get('/api/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
-// 2. Google Callback Route
+// 2. Google Callback Route with dynamic frontend redirect
 app.get('/api/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: 'http://localhost:5173/login' }),
+  passport.authenticate('google', { failureRedirect: `${FRONTEND_URL}/login` }),
   (req: any, res: any) => {
     const token = generateJwtToken(req.user); 
-    res.redirect(`http://localhost:5173/dashboard?token=${token}`);
+    res.redirect(`${FRONTEND_URL}/dashboard?token=${token}`);
   }
 );
 
@@ -633,7 +635,7 @@ app.post(
         try {
           const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
           const prompt =
-            "You are MediShield AI, an empathetic health assistant. Answer queries clearly with bullet points and emojis. If asked in Hindi, reply in Hindi. Query: " +
+            "You are Health-ID AI, an empathetic health assistant. Answer queries clearly with bullet points and emojis. If asked in Hindi, reply in Hindi. Query: " +
             query;
           const result = await model.generateContent(prompt);
           const response = await result.response;
@@ -665,5 +667,5 @@ app.post(
 );
 
 app.listen(PORT, () => {
-  console.log(`🚀 MediShield Backend Running on http://localhost:${PORT}`);
+  console.log(`🚀 Health-ID Backend Running on http://localhost:${PORT}`);
 });
