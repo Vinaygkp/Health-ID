@@ -35,11 +35,11 @@ const generateJwtToken = (user: any) => {
   });
 };
 
-// Express session middleware
+// Express session middleware (Optimized for OAuth flows)
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your_secret_key',
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: false,
 }));
 
 app.use(passport.initialize());
@@ -105,7 +105,7 @@ passport.use(new GoogleStrategy({
   }
 ));
 
-passport.serializeUser((user: any, done: (err: any, id?: any) => void) => done(null, user.id));
+passport.serializeUser((user: any, done: (err: any, id?: any) => void) => done(null, user._id));
 passport.deserializeUser(async (id: string, done: (err: any, user?: any) => void) => {
   try {
     const user = await User.findById(id);
@@ -120,12 +120,20 @@ app.get('/api/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
-// 2. Google Callback Route
+// 2. Google Callback Route (Fixed redirection loop and error handling)
 app.get('/api/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: `${FRONTEND_URL}/login` }),
+  passport.authenticate('google', { failureRedirect: `${FRONTEND_URL}/login?error=google_auth_failed` }),
   (req: any, res: any) => {
-    const token = generateJwtToken(req.user); 
-    res.redirect(`${FRONTEND_URL}/dashboard?token=${token}`);
+    try {
+      if (!req.user) {
+        return res.redirect(`${FRONTEND_URL}/login?error=no_user`);
+      }
+      const token = generateJwtToken(req.user); 
+      res.redirect(`${FRONTEND_URL}/dashboard?token=${token}`);
+    } catch (err) {
+      console.error("❌ Google Callback Error:", err);
+      res.redirect(`${FRONTEND_URL}/login?error=server_error`);
+    }
   }
 );
 
@@ -210,14 +218,7 @@ app.post("/api/auth/send-otp", async (req, res) => {
 
     const cleanEmail = email.trim().toLowerCase();
 
-    // 🛑 Check if user already exists with this email
-    const existingUser = await User.findOne({ email: cleanEmail });
-    if (existingUser) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "An account with this email already exists. Please login instead." 
-      });
-    }
+    // Login ke liye OTP bhejna hai, isliye existingUser ka check yahan se hata diya gaya hai
 
     const generatedEmailOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -367,7 +368,6 @@ app.post("/api/auth/register", async (req, res) => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = phone ? phone.trim() : null;
 
-    // 🛑 Strict Duplicate Check for Email OR Phone Number
     const queryConditions: any[] = [{ email: cleanEmail }];
     if (cleanPhone) {
       queryConditions.push({ phone: cleanPhone });
@@ -582,7 +582,7 @@ app.post(
   async (req: any, res: any) => {
     try {
       const message = req.body?.message || "Please analyze this medical report or image in detail.";
-      const clientLang = req.body?.lang || "en"; // 🛠️ Respect user's selected language
+      const clientLang = req.body?.lang || "en";
       const query = message.trim();
       const uploadedFile = req.file;
 
@@ -590,7 +590,6 @@ app.post(
         try {
           const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
           
-          // 🛠️ Dynamic language instruction based on client selection
           const prompt = `You are Health-ID AI, an expert and empathetic clinical medical assistant. You must reply strictly in the language code: "${clientLang}" (en for English, hi for Hindi, es for Spanish, fr for French). Analyze the user's query and the attached medical report, prescription, lab test, license, or image in detail. Provide clear clinical insights, bullet points, and emojis. User Query: ${query}`;
 
           let result;
@@ -614,7 +613,6 @@ app.post(
         }
       }
 
-      // Language-aware fallback response
       let dynamicReply = clientLang === 'hi' 
         ? `"${query}" के लिए Health-ID विश्लेषण:\n\n• **विश्लेषण**: उचित आराम, संतुलित पोषण और जलयोजन सुनिश्चित करें। 🔬`
         : `Health-ID Analysis for "${query}":\n\n• **Analysis**: Ensure proper rest, balanced nutrition, and hydration. 🔬`;

@@ -68,15 +68,16 @@ export default function Dashboard() {
   const [showWelcome, setShowWelcome] = useState(isFirstLogin)
   const [loading, setLoading] = useState(true)
 
+  // 🛠️ Google OAuth Token Handler (Fixed: No hard reload loop)
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const token = queryParams.get('token');
     if (token) {
       localStorage.setItem('medishield-token', token);
-      window.history.replaceState({}, document.title, '/dashboard');
-      window.location.reload();
+      window.history.replaceState({}, document.title, window.location.pathname);
+      showToast(lang === 'hi' ? 'गूगल लॉगिन सफल रहा!' : 'Google Login successful!', 'success');
     }
-  }, []);
+  }, [lang, showToast]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

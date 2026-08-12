@@ -6,8 +6,8 @@ import { useToast } from '../components/Toast'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 
-// 🌐 Dynamic API Base URL with fallback to your live Render backend
-const API_BASE = import.meta.env.VITE_API_URL || 'https://health-id.onrender.com/api'
+// 🌐 Dynamic API Base URL with fallback to your backend port
+const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export default function Login() {
   const navigate = useNavigate()
@@ -101,9 +101,10 @@ export default function Login() {
     }
   }
 
+  // 🛠️ Fixed Google Login Handler
   const handleGoogleLogin = () => {
-    const baseUrl = API_BASE.replace(/\/api$/, '')
-    window.location.href = `${baseUrl}/api/auth/google`
+    const baseServerUrl = API_BASE.endsWith('/api') ? API_BASE.slice(0, -4) : API_BASE;
+    window.location.href = `${baseServerUrl}/api/auth/google`;
   }
 
   return (

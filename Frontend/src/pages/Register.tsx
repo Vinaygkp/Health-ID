@@ -9,8 +9,8 @@ import { useToast } from '../components/Toast'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 
-// 🌐 Dynamic API Base URL with trailing slash cleanup
-const API_BASE = (import.meta.env.VITE_API_URL || 'https://health-id.onrender.com/api').replace(/\/+$/, '')
+// 🌐 Dynamic API Base URL with trailing slash & api cleanup
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
 
 const STEPS = [
   { num: 1, label: 'Personal', icon: User },
@@ -19,7 +19,7 @@ const STEPS = [
   { num: 4, label: 'Medicines', icon: Pill },
   { num: 5, label: 'Emergency', icon: Users },
   { num: 6, label: 'Documents', icon: FileText },
-  { num: 7, label: 'Aadhaar Verify', icon: Fingerprint },
+  { num: 7, label: 'Identity Verify', icon: Fingerprint },
   { num: 8, label: 'Review', icon: CheckSquare },
 ]
 
@@ -30,7 +30,6 @@ const MED_ALLERGIES = ['Penicillin', 'Aspirin', 'Ibuprofen', 'Sulfa drugs', 'Cod
 const DOC_TYPES = ['Prescription', 'Blood Report', 'Insurance Card', 'Vaccination Record', 'Medical Certificate', 'Scan/X-Ray']
 const RELATIONS = ['Spouse', 'Parent', 'Child', 'Sibling', 'Friend', 'Family Doctor', 'Caretaker', 'Other']
 
-// Dependent Location Data Structure
 const LOCATION_DATA: Record<string, Record<string, string[]>> = {
   'India': {
     'Uttar Pradesh': ['Ghaziabad', 'Noida', 'Lucknow', 'Kanpur', 'Meerut', 'Agra', 'Varanasi', 'Prayagraj'],
@@ -150,15 +149,14 @@ export default function Register() {
   const [demoMobileOtp, setDemoMobileOtp] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  // Document Upload Target Type State
   const [selectedDocType, setSelectedDocType] = useState<string>('Medical Document')
 
-  // Aadhaar Verification States
-  const [aadhaarNumber, setAadhaarNumber] = useState('')
-  const [aadhaarOtp, setAadhaarOtp] = useState(['', '', '', '', '', ''])
-  const [isAadhaarOtpSent, setIsAadhaarOtpSent] = useState(false)
-  const [isAadhaarVerified, setIsAadhaarVerified] = useState(false)
-  const aadhaarInputRefs = useRef<HTMLInputElement[]>([])
+  // Verification States
+  const [idNumber, setIdNumber] = useState('')
+  const [idOtp, setIdOtp] = useState(['', '', '', '', '', ''])
+  const [isIdOtpSent, setIsIdOtpSent] = useState(false)
+  const [isIdVerified, setIsIdVerified] = useState(false)
+  const idInputRefs = useRef<HTMLInputElement[]>([])
 
   // Timer States for Resend OTP
   const [timer, setTimer] = useState(120)
@@ -191,7 +189,7 @@ export default function Register() {
     diseases: [], medicalConditions: '', surgeries: '', disabilities: '', familyHistory: '', insurance: '',
     foodAllergies: [], medicineAllergies: [], dustAllergy: false, otherAllergies: '', allergySeverity: 'Mild',
     medicines: [],
-    emergencyContacts: [], // 🛠️ FIX: Default empty array rakhein taaki blank card na bane
+    emergencyContacts: [],
     documents: [],
   })
 
@@ -259,12 +257,12 @@ export default function Register() {
 
   const handleResendOtp = async () => {
     setIsLoading(true)
-    const baseUrl = API_BASE.replace(/\/api$/, '')
+    const baseServerUrl = API_BASE.endsWith('/api') ? API_BASE.slice(0, -4) : API_BASE;
     if (phase === 'email-otp') {
       await sendOtp(data.email!)
       showToast('New Email OTP sent successfully!', 'success')
     } else if (phase === 'mobile-otp') {
-      await fetch(`${baseUrl}/api/auth/send-mobile-otp`, {
+      await fetch(`${baseServerUrl}/api/auth/send-mobile-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: data.email, phone: data.phone })
@@ -354,36 +352,36 @@ export default function Register() {
     setIsLoading(false)
   }
 
-  const handleSendAadhaarOtp = () => {
-    if (!aadhaarNumber || aadhaarNumber.length !== 12) {
-      showToast('Please enter a valid 12-digit ID number', 'error')
+  const handleSendIdOtp = () => {
+    if (!idNumber || idNumber.length < 10) {
+      showToast('Please enter a valid identification number', 'error')
       return
     }
-    setIsAadhaarOtpSent(true)
+    setIsIdOtpSent(true)
     showToast('OTP sent to registered mobile number (Demo OTP: 123456)', 'success')
   }
 
-  const handleVerifyAadhaarOtp = () => {
-    const finalOtp = aadhaarOtp.join('')
+  const handleVerifyIdOtp = () => {
+    const finalOtp = idOtp.join('')
     if (finalOtp.length < 6) {
       showToast('Please enter complete 6-digit OTP', 'error')
       return
     }
 
-    const maskedId = `XXXX-XXXX-${aadhaarNumber.slice(-4)}`
+    const maskedId = `XXXX-XXXX-${idNumber.slice(-4)}`
     setData(d => ({
       ...d,
       aadhaarNumber: maskedId,
       isAadhaarVerified: true
     }))
 
-    setIsAadhaarVerified(true)
+    setIsIdVerified(true)
     showToast('Identity Verified Successfully! You can now generate your Health ID.', 'success')
     setStep(8)
   }
 
   const handleFinalSubmit = async () => {
-    if (!isAadhaarVerified) {
+    if (!isIdVerified) {
       showToast('Identity verification is mandatory to generate Health ID', 'error')
       setStep(7)
       return
@@ -394,7 +392,7 @@ export default function Register() {
   }
 
   const next = () => {
-    if (step === 7 && !isAadhaarVerified) {
+    if (step === 7 && !isIdVerified) {
       showToast('Please complete identity verification first!', 'error')
       return
     }
@@ -417,7 +415,7 @@ export default function Register() {
     }
   }
 
-  const handleOtpChange = (val: string, index: number, type: 'email' | 'mobile' | 'aadhaar') => {
+  const handleOtpChange = (val: string, index: number, type: 'email' | 'mobile' | 'id') => {
     const digit = val.replace(/[^0-9]/g, '').slice(-1)
     if (type === 'email') {
       const newArr = [...emailOtpArr]
@@ -429,11 +427,11 @@ export default function Register() {
       newArr[index] = digit
       setMobileOtpArr(newArr)
       if (digit && index < 5) mobileInputRefs.current[index + 1]?.focus()
-    } else if (type === 'aadhaar') {
-      const newArr = [...aadhaarOtp]
+    } else if (type === 'id') {
+      const newArr = [...idOtp]
       newArr[index] = digit
-      setAadhaarOtp(newArr)
-      if (digit && index < 5) aadhaarInputRefs.current[index + 1]?.focus()
+      setIdOtp(newArr)
+      if (digit && index < 5) idInputRefs.current[index + 1]?.focus()
     }
   }
 
@@ -457,10 +455,11 @@ export default function Register() {
     docFileRef.current?.click()
   }
 
+  // 🛠️ Fixed Google Signup Handler
   const handleGoogleSignup = () => {
     showToast('Redirecting to Google Authentication...', 'info')
-    const baseUrl = API_BASE.replace(/\/api$/, '')
-    window.location.href = `${baseUrl}/api/auth/google`
+    const baseServerUrl = API_BASE.endsWith('/api') ? API_BASE.slice(0, -4) : API_BASE;
+    window.location.href = `${baseServerUrl}/api/auth/google`;
   }
 
   const availableStates = data.country ? Object.keys(LOCATION_DATA[data.country] || {}) : []
@@ -753,7 +752,6 @@ export default function Register() {
         {/* PHASE 4: MULTI-STEP MEDICAL PROFILE DETAILS */}
         {phase === 'medical' && (
           <>
-            {/* Progress bar */}
             <div className="mb-8">
               <div className="flex justify-between mb-3 overflow-x-auto gap-2 pb-2">
                 {STEPS.map((s) => {
@@ -792,7 +790,6 @@ export default function Register() {
               </div>
             </div>
 
-            {/* Form Card */}
             <div
               className="p-6 sm:p-10 animate-fadeInUp shadow-2xl border border-slate-200 dark:border-slate-800 rounded-3xl relative overflow-hidden bg-white dark:bg-slate-900 transition-colors duration-300"
             >
@@ -1121,7 +1118,7 @@ export default function Register() {
                     Government regulations require identity verification before generating a verified secure Medical HealthID.
                   </p>
 
-                  {!isAadhaarVerified ? (
+                  {!isIdVerified ? (
                     <div className="space-y-4 max-w-md mx-auto text-left">
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-amber-600 dark:text-slate-300">
@@ -1131,17 +1128,17 @@ export default function Register() {
                           type="text"
                           maxLength={12}
                           placeholder="Enter 12-digit ID number"
-                          value={aadhaarNumber}
-                          onChange={e => setAadhaarNumber(e.target.value.replace(/[^0-9]/g, ''))}
-                          disabled={isAadhaarOtpSent}
+                          value={idNumber}
+                          onChange={e => setIdNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                          disabled={isIdOtpSent}
                           className="w-full px-4 py-3.5 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 rounded-2xl focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white placeholder:text-slate-400 tracking-widest font-mono shadow-inner"
                         />
                       </div>
 
-                      {!isAadhaarOtpSent ? (
+                      {!isIdOtpSent ? (
                         <button
                           type="button"
-                          onClick={handleSendAadhaarOtp}
+                          onClick={handleSendIdOtp}
                           className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3.5 text-sm font-black rounded-xl cursor-pointer shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.02]"
                         >
                           Send Verification OTP
@@ -1150,17 +1147,17 @@ export default function Register() {
                         <div className="space-y-4 pt-2">
                           <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">OTP sent to registered mobile number. (Demo OTP: 123456)</p>
                           <div className="flex justify-center gap-2">
-                            {aadhaarOtp.map((digit, idx) => (
+                            {idOtp.map((digit, idx) => (
                               <input
                                 key={idx}
-                                ref={el => { if (el) aadhaarInputRefs.current[idx] = el }}
+                                ref={el => { if (el) idInputRefs.current[idx] = el }}
                                 type="text"
                                 maxLength={1}
                                 value={digit}
-                                onChange={e => handleOtpChange(e.target.value, idx, 'aadhaar')}
+                                onChange={e => handleOtpChange(e.target.value, idx, 'id')}
                                 onKeyDown={e => {
                                   if (e.key === 'Backspace' && !digit && idx > 0) {
-                                    aadhaarInputRefs.current[idx - 1]?.focus()
+                                    idInputRefs.current[idx - 1]?.focus()
                                   }
                                 }}
                                 className="w-11 h-14 text-center text-2xl font-black bg-slate-50 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 rounded-2xl focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white shadow-inner"
@@ -1169,7 +1166,7 @@ export default function Register() {
                           </div>
                           <button
                             type="button"
-                            onClick={handleVerifyAadhaarOtp}
+                            onClick={handleVerifyIdOtp}
                             className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3.5 text-sm font-black rounded-xl cursor-pointer shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.02]"
                           >
                             Verify OTP & Proceed
@@ -1214,7 +1211,7 @@ export default function Register() {
                       ['Medicines', (data.medicines ?? []).map(m => m.name).filter(Boolean).join(', ') || 'None'],
                       ['Emergency Contacts', `${(data.emergencyContacts ?? []).length} contacts`],
                       ['Documents', `${(data.documents ?? []).length} uploaded`],
-                      ['Verification Status', isAadhaarVerified ? 'Verified ✓' : 'Pending ✗'],
+                      ['Verification Status', isIdVerified ? 'Verified ✓' : 'Pending ✗'],
                     ].map(([k, v]) => (
                       <div key={k} className="flex items-center justify-between py-2 text-xs sm:text-sm border-b border-slate-200 dark:border-slate-800 last:border-0">
                         <span className="text-slate-500 dark:text-slate-400 font-medium">{k}</span>
@@ -1233,7 +1230,7 @@ export default function Register() {
                   <button
                     type="button"
                     onClick={handleFinalSubmit}
-                    disabled={!isAadhaarVerified}
+                    disabled={!isIdVerified}
                     className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-4 text-sm font-black flex justify-center items-center gap-2 shadow-xl shadow-emerald-500/25 rounded-2xl cursor-pointer disabled:opacity-50 transition-all hover:scale-[1.02]"
                   >
                     Generate HealthID & QR Code ✨
