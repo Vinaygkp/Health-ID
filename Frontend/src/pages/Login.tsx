@@ -6,8 +6,8 @@ import { useToast } from '../components/Toast'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 
-// 🌐 Dynamic API Base URL with fallback to your backend port
-const API_BASE = import.meta.env.VITE_API_URL || ''
+// 🌐 Production-Ready Dynamic API Base URL
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
 
 export default function Login() {
   const navigate = useNavigate()
@@ -101,7 +101,7 @@ export default function Login() {
     }
   }
 
-  // 🛠️ Fixed Google Login Handler
+  // 🛠️ Production-Safe Google Login Handler
   const handleGoogleLogin = () => {
     const baseServerUrl = API_BASE.endsWith('/api') ? API_BASE.slice(0, -4) : API_BASE;
     window.location.href = `${baseServerUrl}/api/auth/google`;

@@ -10,7 +10,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 
 // 🌐 Dynamic API Base URL with trailing slash & api cleanup
-const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5001/api').replace(/\/+$/, '')
 
 const STEPS = [
   { num: 1, label: 'Personal', icon: User },
@@ -126,11 +126,19 @@ const Chip = ({ label, active, onClick }: { label: string; active: boolean; onCl
 
 export default function Register() {
   const navigate = useNavigate()
-  const { register, sendOtp, updateProfile } = useAuth()
+  const { register, sendOtp, updateProfile, user } = useAuth()
   const { showToast } = useToast()
 
   const [phase, setPhase] = useState<'auth' | 'email-otp' | 'mobile-otp' | 'medical'>('auth')
   const [step, setStep] = useState(1)
+
+  // 🛠️ Agar user Google Signup se aaya hai aur medical profile adhoori hai, toh seedha medical phase par le jayein
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search)
+    if (queryParams.get('token') || (user && (!user.bloodGroup || user.bloodGroup.trim() === ''))) {
+      setPhase('medical')
+    }
+  }, [user])
 
   const [countryCode, setCountryCode] = useState('+91')
   const [phoneNumber, setPhoneNumber] = useState('')
@@ -182,15 +190,35 @@ export default function Register() {
   const fileRef = useRef<HTMLInputElement>(null)
   const docFileRef = useRef<HTMLInputElement>(null)
   const [data, setData] = useState<Partial<UserProfile & { password?: string }>>({
-    profilePhoto: '',
-    fullName: '', dob: '', gender: '', phone: '', email: '', address: '',
-    country: '', state: '', district: '', pincode: '', nationality: 'Indian',
-    bloodGroup: '', height: '', weight: '',
-    diseases: [], medicalConditions: '', surgeries: '', disabilities: '', familyHistory: '', insurance: '',
-    foodAllergies: [], medicineAllergies: [], dustAllergy: false, otherAllergies: '', allergySeverity: 'Mild',
-    medicines: [],
-    emergencyContacts: [],
-    documents: [],
+    profilePhoto: user?.profilePhoto || '',
+    fullName: user?.fullName || '', 
+    dob: user?.dob || '', 
+    gender: user?.gender || '', 
+    phone: user?.phone || '', 
+    email: user?.email || '', 
+    address: user?.address || '',
+    country: user?.country || '', 
+    state: user?.state || '', 
+    district: user?.district || '', 
+    pincode: user?.pincode || '', 
+    nationality: user?.nationality || 'Indian',
+    bloodGroup: user?.bloodGroup || '', 
+    height: user?.height || '', 
+    weight: user?.weight || '',
+    diseases: user?.diseases || [], 
+    medicalConditions: user?.medicalConditions || '', 
+    surgeries: user?.surgeries || '', 
+    disabilities: user?.disabilities || '', 
+    familyHistory: user?.familyHistory || '', 
+    insurance: user?.insurance || '',
+    foodAllergies: user?.foodAllergies || [], 
+    medicineAllergies: user?.medicineAllergies || [], 
+    dustAllergy: user?.dustAllergy || false, 
+    otherAllergies: user?.otherAllergies || '', 
+    allergySeverity: user?.allergySeverity || 'Mild',
+    medicines: user?.medicines || [],
+    emergencyContacts: user?.emergencyContacts || [],
+    documents: user?.documents || [],
   })
 
   const set = (field: string, val: unknown) => {

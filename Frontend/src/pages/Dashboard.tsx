@@ -28,8 +28,8 @@ interface StatCardProps {
 
 function StatCard({ icon: Icon, label, value, sub, color, onClick }: StatCardProps) {
   return (
-    <div 
-      onClick={onClick} 
+    <div
+      onClick={onClick}
       className={`card p-6 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border border-slate-500/20 rounded-3xl ${onClick ? 'cursor-pointer' : ''}`}
     >
       <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-10 pointer-events-none" style={{ background: color }} />
@@ -64,7 +64,7 @@ export default function Dashboard() {
   const { showToast } = useToast()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  
+
   const [showWelcome, setShowWelcome] = useState(isFirstLogin)
   const [loading, setLoading] = useState(true)
 
@@ -121,13 +121,13 @@ export default function Dashboard() {
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col min-w-0">
-        
+
         {/* Top Header Bar */}
         <header className="sticky top-0 z-30 flex items-center justify-between px-6 py-4 border-b border-slate-500/20 backdrop-blur-md bg-card/80">
           <div className="flex items-center gap-4">
-            <button 
-              type="button" 
-              onClick={() => setSidebarOpen(true)} 
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
               className="lg:hidden w-10 h-10 rounded-xl flex items-center justify-center transition-transform active:scale-95 bg-slate-500/10 text-foreground cursor-pointer border border-slate-500/20"
             >
               <Menu size={20} />
@@ -150,7 +150,7 @@ export default function Dashboard() {
 
           <div className="flex items-center gap-3">
             {/* Language Toggle Button */}
-            <button 
+            <button
               type="button"
               onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-500/10 text-foreground border border-slate-500/20 hover:scale-105 transition-all cursor-pointer shadow-sm"
@@ -159,18 +159,18 @@ export default function Dashboard() {
               <span>{lang === 'en' ? 'हिंदी' : 'English'}</span>
             </button>
 
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="w-10 h-10 rounded-xl flex items-center justify-center relative transition-transform hover:scale-105 active:scale-95 shadow-sm bg-slate-500/10 text-foreground border border-slate-500/20 cursor-pointer"
               onClick={() => showToast(lang === 'hi' ? 'सभी प्रणालियाँ चालू हैं। कोई अपठित सुरक्षा चेतावनी नहीं है।' : 'All systems operational. No unread security alerts.', 'info')}
             >
               <Bell size={18} />
               <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white animate-pulse" />
             </button>
-            
-            <button 
-              type="button" 
-              onClick={toggleTheme} 
+
+            <button
+              type="button"
+              onClick={toggleTheme}
               className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 shadow-sm bg-slate-500/10 text-foreground border border-slate-500/20 cursor-pointer"
             >
               {theme === 'dark' ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-indigo-600" />}
@@ -207,9 +207,9 @@ export default function Dashboard() {
                       </p>
                     </div>
                   </div>
-                  <button 
-                    type="button" 
-                    onClick={() => navigate('/profile')} 
+                  <button
+                    type="button"
+                    onClick={() => navigate('/profile')}
                     className="btn-primary text-xs py-2.5 px-5 shrink-0 flex items-center gap-2 shadow-lg hover:scale-105 transition-transform cursor-pointer"
                   >
                     {lang === 'hi' ? 'प्रोफ़ाइल संपादित करें' : 'Edit Profile'} <Edit3 size={14} />
@@ -217,21 +217,20 @@ export default function Dashboard() {
                 </div>
 
                 <div className="h-3 rounded-full overflow-hidden mb-5 shadow-inner bg-slate-500/10 border border-slate-500/20">
-                  <div 
+                  <div
                     className="h-full rounded-full transition-all duration-1000 bg-gradient-to-r from-blue-600 via-indigo-600 to-fuchsia-600 shadow"
-                    style={{ width: `${completionPct}%` }} 
+                    style={{ width: `${completionPct}%` }}
                   />
                 </div>
 
                 <div className="flex flex-wrap gap-2.5">
                   {sections.map(s => (
-                    <button 
-                      key={s.key} 
-                      type="button" 
+                    <button
+                      key={s.key}
+                      type="button"
                       onClick={() => navigate(`/medical-overview?tab=${s.key}`)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105 border shadow-sm cursor-pointer ${
-                        s.done ? 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30' : 'bg-card text-slate-400 border-slate-500/20 hover:text-foreground'
-                      }`}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105 border shadow-sm cursor-pointer ${s.done ? 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30' : 'bg-card text-slate-400 border-slate-500/20 hover:text-foreground'
+                        }`}
                     >
                       {s.done ? <CheckCircle size={14} className="text-emerald-500" /> : <AlertCircle size={14} className="text-amber-500" />}
                       <span>{lang === 'hi' ? s.labelHi : s.labelEn}</span>
@@ -251,10 +250,10 @@ export default function Dashboard() {
 
             {/* Main Content 3-Column Layout */}
             <div className="grid lg:grid-cols-3 gap-6">
-              
+
               {/* Left Column: ID Card & Quick Navigation */}
               <div className="space-y-6">
-                
+
                 {/* Digital Health Card Mini */}
                 <div className="card overflow-hidden cursor-pointer group shadow-xl hover:shadow-2xl transition-all duration-300 rounded-3xl border border-slate-500/20 bg-card" onClick={() => navigate('/health-card')}>
                   <div className="p-6 flex items-center justify-between relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-fuchsia-600">
@@ -319,9 +318,9 @@ export default function Dashboard() {
                     {quickActions.map(a => {
                       const Icon = a.icon
                       return (
-                        <button 
-                          key={a.id} 
-                          type="button" 
+                        <button
+                          key={a.id}
+                          type="button"
                           onClick={() => navigate(a.to)}
                           className="flex flex-col items-center gap-2 p-3.5 rounded-2xl transition-all duration-200 hover:scale-105 active:scale-95 group text-center bg-slate-500/5 border border-slate-500/10 cursor-pointer hover:border-indigo-500/40"
                         >
@@ -342,7 +341,7 @@ export default function Dashboard() {
 
               {/* Center Column: Medical Summary, Medicines, Uploads */}
               <div className="space-y-6">
-                
+
                 {/* Medical Summary */}
                 <div className="card p-6 shadow-xl rounded-3xl border border-slate-500/20 bg-card">
                   <div className="flex items-center justify-between mb-4">
@@ -439,7 +438,7 @@ export default function Dashboard() {
 
               {/* Right Column: Activity Log, Emergency Contacts, Health Score */}
               <div className="space-y-6">
-                
+
                 {/* Recent Activity Log */}
                 <div className="card p-6 shadow-xl rounded-3xl border border-slate-500/20 bg-card">
                   <p className="font-black text-sm mb-4 text-foreground font-jakarta">{lang === 'hi' ? 'हाल की गतिविधि' : 'Recent Activity'}</p>

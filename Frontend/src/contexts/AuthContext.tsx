@@ -58,7 +58,8 @@ interface AuthContextType {
   setFirstLoginDone: () => void
 }
 
-const API_BASE = import.meta.env.VITE_API_URL
+// 🌐 Dynamic API Base URL with fallback
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5001/api').replace(/\/+$/, '')
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -108,11 +109,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // 🔄 Fresh Profile Fetch on Reload
+  // 🔄 Fresh Profile Fetch & Google Token Capture on Mount
   useEffect(() => {
     const fetchFreshProfile = async () => {
       try {
-        const token = localStorage.getItem('medishield-token')
+        // 🛠️ 1. Check if token came from Google OAuth redirect in URL query params
+        const queryParams = new URLSearchParams(window.location.search)
+        const tokenFromUrl = queryParams.get('token')
+
+        if (tokenFromUrl) {
+          localStorage.setItem('medishield-token', tokenFromUrl)
+          // Clean the URL query params without reloading the page
+          window.history.replaceState({}, document.title, window.location.pathname)
+        }
+
+        const token = tokenFromUrl || localStorage.getItem('medishield-token')
         if (!token) return
 
         const res = await fetch(`${API_BASE}/user/profile`, {
@@ -127,6 +138,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(userData)
           localStorage.setItem('medishield-user', JSON.stringify(userData))
           setIsLoggedIn(true)
+
+          // 🛠️ 2. Google Signup Flow Check: Agar user ki medical details (bloodGroup) nahi bhari hain, 
+          // toh use seedha details form (/profile) par bhej dein, dashboard par nahi!
+          if (tokenFromUrl && (!userData.bloodGroup || userData.bloodGroup.trim() === '')) {
+            window.location.href = '/profile'
+          }
         } else {
           logout()
         }

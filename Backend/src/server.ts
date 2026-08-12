@@ -218,8 +218,6 @@ app.post("/api/auth/send-otp", async (req, res) => {
 
     const cleanEmail = email.trim().toLowerCase();
 
-    // Login ke liye OTP bhejna hai, isliye existingUser ka check yahan se hata diya gaya hai
-
     const generatedEmailOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
     otpStorage.set(cleanEmail, {
